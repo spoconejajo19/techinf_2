@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstring>
+void usage(const char *programName) {
+    printf("Usage: %s number1 operation number\n",programName);
+    printf("\tadd\n");
+    printf("\tsub\n");
+    printf("\tmul\n");
+    printf("\tdiv\n");
+    printf("\tmod\n");
+    printf("\n");
+}
+
+int main(int argc, char const *argv[]) {
+    if (argc == 4) {
+        int number1 = atoi(argv[1]);
+        int number2 = atoi(argv[3]);
+        int result = 0;
+
+
+        usage(argv[0]);
+        if (!strcmp("add", argv[2])) {
+            result = number1 + number2;
+            printf("%d %s %d = %d\n", number1, argv[2], number2, result);
+        }
+
+        if (!strcmp("sub", argv[2])) {
+            result = number1 - number2;
+            printf("%d %s %d = %d\n", number1, argv[2], number2, result);
+        }
+
+        if (!strcmp("mul", argv[2])) {
+            result = number1 * number2;
+            printf("%d %s %d = %d\n", number1, argv[2], number2, result);
+        }
+
+        if (!strcmp("div", argv[2]) && number2 != 0) {
+            float result = (float) number1 / number2;
+            printf("%d %s %d = %f\n", number1, argv[2], number2, result);
+        }
+
+        if (!strcmp("mod", argv[2]) && number2 != 0) {
+            result = number1 % number2;
+            printf("%d %s %d = %d\n", number1, argv[2], number2, result);
+        }
+
+
+    }
+    return 0;
+}
