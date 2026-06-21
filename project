@@ -1,0 +1,229 @@
+import random
+
+class Karta:
+    def __init__(self, ranga, symbol, wartosc):
+        self.ranga = ranga
+        self.symbol = symbol
+        self.wartosc = wartosc
+        
+        if self.symbol == 'Kier' or self.symbol == 'Karo':
+            self.kolor = 'czerwony'
+        else:
+            self.kolor = 'czarny'
+
+    def __str__(self):
+        return self.ranga + " " + self.symbol
+
+class Talia:
+    def __init__(self):
+        self.karty = []
+        rangi = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Walet', 'Dama', 'Krol', 'As']
+        symbole = ['Kier', 'Karo', 'Trefl', 'Pik']
+        
+        w = 2
+        for r in rangi:
+            for s in symbole:
+                self.karty.append(Karta(r, s, w))
+            w += 1
+
+    def tasuj(self):
+        random.shuffle(self.karty)
+
+    def dobierz(self):
+        return self.karty.pop()
+
+def wojna(saldo):
+    print("\n- WOJNA -")
+    
+    t = Talia()
+    t.tasuj()
+
+    k_komputera = t.dobierz()
+    print("Karta komputera:", k_komputera)
+
+    wygrywajace = 0
+    remisujace = 0
+    for k in t.karty:
+        if k.wartosc > k_komputera.wartosc:
+            wygrywajace += 1
+        elif k.wartosc == k_komputera.wartosc:
+            remisujace += 1
+
+    liczba_kart = len(t.karty)
+    
+    if wygrywajace > 0:
+        p_wygrana = wygrywajace / liczba_kart
+        kurs_wygrana = round((1 / p_wygrana) * 0.95, 2)
+        if kurs_wygrana < 1.01:
+            kurs_wygrana = 1.01
+    else:
+        kurs_wygrana = 0
+
+    if remisujace > 0:
+        p_remis = remisujace / liczba_kart
+        kurs_remis = round((1 / p_remis) * 0.95, 2)
+    else:
+        kurs_remis = 0
+
+    print("Kurs na wygrana:", kurs_wygrana)
+    print("Kurs na remis:", kurs_remis)
+
+    while True:
+        cel = input("Na co chcesz postawic? (wygrana / remis / pas): ").strip().lower()
+        
+        if cel == 'pas':
+            print("Pasujesz. Wracasz do menu glownego.")
+            return saldo
+        elif cel == 'wygrana' and kurs_wygrana == 0:
+            print("Komputer ma Asa. Nie masz szans na wygrana, wybierz remis lub pas.")
+        elif cel == 'remis' and kurs_remis == 0:
+            print("Brak kart do remisu w talii.")
+        elif cel in ['wygrana', 'remis']:
+            break
+        else:
+            print("Niepoprawny wybor. Wpisz 'wygrana', 'remis' lub 'pas'.")
+
+    while True:
+        try:
+            zaklad = int(input("Ile euro chcesz postawic? (Twoje saldo: " + str(saldo) + " EUR): "))
+            if zaklad > 0 and zaklad <= saldo:
+                break
+            else:
+                print("Nieprawidlowa kwota lub brak wystarczajacych srodkow na koncie.")
+        except ValueError:
+            print("Wpisz poprawna liczbe calkowita.")
+
+    saldo -= zaklad
+    
+    k_gracza = t.dobierz()
+    print("Twoja karta:", k_gracza)
+
+    if cel == 'wygrana':
+        if k_gracza.wartosc > k_komputera.wartosc:
+            wygrana = int(zaklad * kurs_wygrana)
+            saldo += wygrana
+            print("Gratulacje! Wygrywasz", wygrana, "EUR.")
+        elif k_gracza.wartosc < k_komputera.wartosc:
+            print("Komputer ma wyzsza karte. Przegrywasz zaklad.")
+        else:
+            print("Remis. Twoj zaklad zostaje zwrocony na konto.")
+            saldo += zaklad
+
+    elif cel == 'remis':
+        if k_gracza.wartosc == k_komputera.wartosc:
+            wygrana = int(zaklad * kurs_remis)
+            saldo += wygrana
+            print("Trafiles remis! Wygrana:", wygrana, "EUR.")
+        else:
+            print("Brak remisu. Przegrywasz zakład.")
+
+    return saldo
+
+def autobus(saldo):
+    print("\n- AUTOBUS (4 ETAPY) -")
+    
+    while True:
+        try:
+            zaklad = int(input("Ile euro chcesz postawic? (Twoje saldo: " + str(saldo) + " EUR): "))
+            if zaklad > 0 and zaklad <= saldo:
+                break
+            else:
+                print("Nieprawidlowa kwota lub brak wystarczajacych srodkow na koncie.")
+        except ValueError:
+            print("Wpisz poprawna liczbe całkowita.")
+
+    saldo -= zaklad
+    t = Talia()
+    t.tasuj()
+
+    kolor = input("Etap 1: Zgadnij kolor pierwszej karty (czerwony/czarny): ").strip().lower()
+    k1 = t.dobierz()
+    print("Wylosowana karta:", k1)
+
+    if kolor != k1.kolor:
+        print("Niepoprawny kolor. Przegrywasz zaklad.")
+        return saldo
+    
+    print("Dobry wybor, przechodzisz dalej.")
+    wn = input("Etap 2: Czy kolejna karta będzie wyzsza czy nizsza? (wyzsza/nizsza): ").strip().lower()
+    k2 = t.dobierz()
+    print("Wylosowana karta:", k2)
+
+    if k1.wartosc == k2.wartosc:
+        print("Wylosowano te sama wartosc. Kasyno wygrywa remisy. Przegrywasz.")
+        return saldo
+
+    if (wn == 'wyzsza' and k2.wartosc > k1.wartosc) or (wn == 'nizsza' and k2.wartosc < k1.wartosc):
+        print("Dobry wybor, przechodzisz dalej.")
+    else:
+        print("Pomyliles sie. Przegrywasz zaklad.")
+        return saldo
+
+    pp = input("Etap 3: Czy następna karta bedzie w przedziale pomiedzy nimi, czy poza nim? (pomiedzy/poza): ").strip().lower()
+    k3 = t.dobierz()
+    print("Wylosowana karta:", k3)
+
+    dolna_granica = min(k1.wartosc, k2.wartosc)
+    gorna_granica = max(k1.wartosc, k2.wartosc)
+
+    if k3.wartosc == dolna_granica or k3.wartosc == gorna_granica:
+        print("Trafiles dokladnie w granice przedzialu. Przegrywasz zaklad.")
+        return saldo
+
+    jest_pomiedzy = False
+    if k3.wartosc > dolna_granica and k3.wartosc < gorna_granica:
+        jest_pomiedzy = True
+
+    if (pp == 'pomiedzy' and jest_pomiedzy == True) or (pp == 'poza' and jest_pomiedzy == False):
+        print("Dobry wybor. Został ostatni etap!")
+    else:
+        print("Niestety, pomylileś się. Przegrywasz zakład.")
+        return saldo
+
+    sym = input("Etap 4: Zgadnij konkretny symbol ostatniej karty (Kier, Karo, Trefl, Pik): ").strip().lower()
+    k4 = t.dobierz()
+    print("Wylosowana karta:", k4)
+
+    if sym == k4.symbol.lower():
+        wygrana = zaklad * 5
+        saldo += wygrana
+        print("Gratulacje! Przeszedleś cala gre. Wygrywasz", wygrana, "EUR!")
+    else:
+        print("Zly symbol na samym koncu. Przegrywasz zaklad.")
+
+    return saldo
+
+def main():
+    saldo = 50000
+    
+    while True:
+        print("\n=== SYMULATOR KASYNA ===")
+        print("Twój stan konta:", saldo, "EUR")
+        print("1. Zagraj: Autobus (Mnożnik x5)")
+        print("2. Zagraj: Wojna (Zmienne kursy)")
+        print("3. Wyświetl zasady gry")
+        print("4. Wyjście z kasyna")
+        
+        wybor = input("Wybierz opcję (1-4): ").strip()
+        
+        if wybor == '1':
+            saldo = autobus(saldo)
+        elif wybor == '2':
+            saldo = wojna(saldo)
+        elif wybor == '3':
+            print("\n--- ZASADY GRY ---")
+            print("Autobus: Składa się z 4 etapów zgadywania. Przejscie wszystkich gwarantuje wygrana rowna 5x Twojego zakladu.")
+            print("Wojna: Komputer odkrywa swoją karte. Na podstawie talii obliczany jest kurs. Wybierasz, czy chcesz obstawic wygrana, remis, czy spasowac.")
+        elif wybor == '4':
+            print("Dziekujemy za gre. Odchodzisz z kwota:", saldo, "EUR.")
+            break
+        else:
+            print("Niepoprawny wybór. Wpisz cyfrę od 1 do 4.")
+
+        if saldo <= 0:
+            print("\nNiestety, straciles wszystkie srodki na koncie.")
+            print("Koniec gry.")
+            break
+
+if __name__ == "__main__":
+    main()
